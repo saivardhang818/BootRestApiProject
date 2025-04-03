@@ -1,9 +1,11 @@
 package com.sathya.restapiproject.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.sathya.restapiproject.data.Employee;
 import com.sathya.restapiproject.repository.EmployeeRepository;
@@ -54,9 +56,95 @@ public class EmployeeService {
 		return emp;
 	}
 
-	
+	public Boolean deleteById(long id) {
+		boolean status=employeeRepository.existsById(id);
+		if(status)
+		{
+			employeeRepository.deleteById(id);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
+	public Boolean deleteAll() {
+		long count=employeeRepository.count();
+		if(count>0)
+		{
+			employeeRepository.deleteAll();;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 
-	
+	public Boolean deleteByEmail(String email) {
+	    boolean status = employeeRepository.existsByEmail(email); 
+	    if (status) {
+	        employeeRepository.deleteByEmail(email);
+	        return true;
+	    }
+	    return false;
+	}
 
+	public Employee updateById(long id, Employee employee) {
+		Optional<Employee> optionalemp=employeeRepository.findById(id);
+		if(optionalemp.isPresent())
+		{
+			Employee emp=optionalemp.get();
+			emp.setName(employee.getName());
+			emp.setSalary(employee.getSalary());
+			emp.setDept(employee.getDept());
+			emp.setGender(employee.getGender());
+			emp.setEmail(employee.getEmail());
+		
+		return employeeRepository.save(emp);
+		}
+		else 
+		{
+			return null;
+		}
+	}
+
+	public Optional<Employee> partialUpdateEmployee(long id, Map<String, Object> updates) {
+		Optional<Employee> optionalemp= employeeRepository.findById(id);
+		if(optionalemp.isPresent())
+		{
+			Employee existingEmp=optionalemp.get();
+			updates.forEach((key,value)->
+			{
+				switch (key) {
+				case "name": 
+					existingEmp.setName((String)value);
+					break;
+				case "gender": 
+					existingEmp.setGender((String)value);
+					break;
+				case "email": 
+					existingEmp.setEmail((String)value);
+					break;
+				case "dept": 
+					existingEmp.setDept((String)value);
+					break;
+				case "salary": 
+					existingEmp.setSalary((double)value);
+					break;
+				default:
+					throw new IllegalArgumentException("Unexpected value: " + key);
+				}
+			});
+			Employee employee=employeeRepository.save(existingEmp);
+			return Optional.of(employee);
+			
+				 
+			}
+		else
+		{
+			return Optional.empty();
+		}
+		}
 }
